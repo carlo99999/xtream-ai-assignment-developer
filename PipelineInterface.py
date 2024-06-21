@@ -146,7 +146,7 @@ if st.session_state.model_trained and not st.session_state.loaded_model and not 
         else:
             st.session_state.model.clean_data(columns_to_drop=st.session_state.columns_to_drop)
             mae=st.session_state.model.train_model()
-        st.session_state.success_string=f"Model trained successfully with MAE: {mae}"
+        st.session_state.success_string=f"Model trained successfully with MAE: {mae:.2f}"
         st.session_state.prediction=True
 
 if st.session_state.loaded_model and not st.session_state.model_trained:
@@ -194,7 +194,7 @@ if st.session_state.prediction and st.session_state.model!=None:
         prediction=model.predict(df)
         st.markdown(f"""
 
-        ✨ **The probable market value of the diamond is {prediction[0]}** ✨
+        ✨ **The probable market value of the diamond is {prediction[0]:.2f}** ✨
 
         💎 This value is calculated based on extensive analysis and our advanced machine learning model. 💎
 
