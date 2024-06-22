@@ -67,5 +67,22 @@ Observability is key. Save every request and response made to the APIs to a **pr
 
 ---
 
-## How to run
-Please fill this section as part of the assignment.
+### Personal consideration and choices
+
+I decided to create a fully integrated web app that can create, load, and save the models. So that Challenge 1 and 2 are covered, moreover, the class DiamondModels should get through Challenge 3 and 4 with almost no modifications.
+
+It cannot predict the prices for more than one diamond at a time, but since the use case is "determine the prices for diamonds customers want to sell to him," I figured that in real life you shouldn't get a customer with a lot of diamonds and a spreadsheet with all of them, especially retail customers.
+
+Anyway, I think that is a good feature we can implement in the future for Don Francesco. Using my codebase is going to be pretty easy, but the drawback of using Streamlit is that it gets really messy really fast, so I think it's better to address a large number of diamonds with the API and DB approach.
+
+---
+
+## How to run 🦎
+
+- The pipeline for Challenge 1 and 2 can be run by installing the requirements and running:
+
+```bash
+streamlit run PipelineInterface.py
+```
+
+I have used an anaconda env to run my scripts, so I'm going to add both the 'conda_packages.txt' and 'requirements.txt' files

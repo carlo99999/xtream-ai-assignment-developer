@@ -193,7 +193,6 @@ if st.session_state.prediction and st.session_state.model!=None:
         df.drop(columns=["price"],inplace=True)
         prediction=model.predict(df)
         st.markdown(f"""
-
         ✨ **The probable market value of the diamond is {prediction[0]:.2f}** ✨
 
         💎 This value is calculated based on extensive analysis and our advanced machine learning model. 💎
