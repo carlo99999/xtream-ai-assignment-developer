@@ -26,7 +26,7 @@ def get_diamond_similarity():
             
     
     diz["n"]=col[-1].number_input("How many similar diamonds?",min_value=1,step=1)
-    
+
     diz["directory"]="default_model"
     if st.button("Find Similar Diamonds"):
         url_similar_diamonds = "http://localhost:8000/api/similar_diamonds"

@@ -98,7 +98,7 @@ def predict_with_trained_model(id):
     
     # Aggiungi un pulsante per fare le predizioni
     if st.button("Make Predictions"):
-        st.write("Making predictions...")
+        st.write("Making prediction    s...")
         url = f"http://localhost:8000/api/predict/"
         response = requests.post(url, json=diz,params={"id":id})
         if response.status_code == 200:

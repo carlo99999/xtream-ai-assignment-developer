@@ -75,7 +75,19 @@ It cannot predict the prices for more than one diamond at a time, but since the 
 
 Anyway, I think that is a good feature we can implement in the future for Don Francesco. Using my codebase is going to be pretty easy, but the drawback of using Streamlit is that it gets really messy really fast, so I think it's better to address a large number of diamonds with the API and DB approach.
 
-First thing first i have to build an ORM, I've decided to go with FastAPI for the APIs and SQLAlchemy for the ORM
+First thing first i have to build an ORM, I've decided to go with FastAPI for the APIs and SQLAlchemy for the ORM.
+
+The final product is very similar to the PipelineInterface used for challenge 2 and 3. 
+
+I decided to always give the user the possibilty to use his datas to predict the price of his diamonds, but there is always yhe default Model we trained.
+
+I've used FastAPI since is the fastest on the market for python, Streamlit for the interface since is really fast to set up and it gives you a lot of stuff out of the box, even though for a full website i would go with Django since is more robust.
+
+There are somethings I left as TODOs, like columns renaming if the columns have not the exact same names as the datas, and little stuff like that.
+
+It definetly would improve the quality of life of a user, but it would get extremly complicated.
+
+
 
 ---
 
@@ -88,3 +100,15 @@ streamlit run PipelineInterface.py
 ```
 
 I have used an anaconda env to run my scripts, so I'm going to add both the 'conda_packages.txt' and 'requirements.txt' files
+
+- The app requires 2 open terminals:
+
+- - On the first you have to run 
+```bash
+streamlit run PipelineInterface.py
+```
+
+- - On the second you have to run 
+```bash
+uvicorn APIs:app 
+```

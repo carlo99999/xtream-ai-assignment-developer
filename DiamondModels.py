@@ -223,8 +223,10 @@ class DiamondModel:
 
         if filtered_data.empty:
             return pd.DataFrame()
-
+       
         filtered_data['weight_diff'] = (filtered_data['carat'] - carat).abs()
-        similar_samples = filtered_data.sort_values(by='weight_diff').head(n)
+        similar_samples = filtered_data.sort_values(by='weight_diff')
+       
+        print(similar_samples.shape)
         return similar_samples.drop(columns=['weight_diff'])
 

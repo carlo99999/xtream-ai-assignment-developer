@@ -41,3 +41,31 @@ class Predicted(Base):
     price=Column(Float)
     
     to_predict = relationship("ToPredict", back_populates="predictions")
+    
+    
+class Diamond(Base):
+    __tablename__ = "Diamonds"
+    id = Column(Integer, primary_key=True, index=True)
+    carat = Column(Float)
+    cut = Column(String)
+    color = Column(String)
+    clarity = Column(String)
+    
+    similar_diamonds = relationship("SimilarDiamond", back_populates="diamond")
+
+class SimilarDiamond(Base):
+    __tablename__ = "SimilarDiamonds"
+    id = Column(Integer, primary_key=True, index=True)
+    diamondId = Column(Integer, ForeignKey("Diamonds.id"))
+    carat = Column(Float)
+    cut = Column(String)
+    color = Column(String)
+    clarity = Column(String)
+    price = Column(Float)
+    x = Column(Float)
+    y = Column(Float)
+    z = Column(Float)
+    table = Column(Float)
+    depth = Column(Float)
+    
+    diamond = relationship("Diamond", back_populates="similar_diamonds")

@@ -4,11 +4,12 @@ from fastapi.middleware.cors import CORSMiddleware
 import asyncio
 from DiamondModels import DiamondModel,modelling_algorithms
 import io
-from Models import SavedDatas,Base,engine,ToPredict,Predicted
+from Models import SavedDatas,Base,engine,ToPredict,Predicted,SimilarDiamond,Diamond
 import uvicorn
 from sqlalchemy.orm import Session, sessionmaker
 import pandas as pd
 import os
+
 
 Base.metadata.create_all(bind=engine)
 
@@ -177,12 +178,18 @@ def get_similar_diamonds(diz: dict=Body(...),db: Session = Depends(get_db)):
         color=diz.get("color",None)
         clarity=diz.get("clarity",None)
         carat=diz.get("carat",None)
+        diamond=Diamond(carat=carat,cut=cut,color=color,clarity=clarity)
+        dbDiamond=add_to_db(db,diamond)
         if carat is not None and cut is not None and color is not None and clarity is not None:
             datas=pd.read_csv(f"datas_uploaded/{i}")
             datas.drop(columns=["price"],inplace=True)
             model=DiamondModel(id="Default",model="XGBRegressor",folder="default_model")
             similar_diamonds=model.get_similar_samples(n=n,cut=cut,color=color,clarity=clarity,carat=carat)
-            return JSONResponse(status_code=200,content={"message":"Similar diamonds retrieved successfully!", "data":similar_diamonds.to_dict()})
+            similar_diamonds=similar_diamonds.to_dict(orient="records")
+            for i in similar_diamonds:
+                similar_diamond=SimilarDiamond(diamondId=dbDiamond.id,**i)
+                add_to_db(db,similar_diamond)
+            return JSONResponse(status_code=200,content={"message":"Similar diamonds retrieved successfully!", "data":similar_diamonds})
     return JSONResponse(status_code=400,content={"message":"Datas not found. Please upload the datas before making predictions."})
 
 if __name__=="__main__":
