@@ -67,7 +67,7 @@ class DiamondModel:
         elif isinstance(datas, pd.DataFrame):
             self.datas = datas
         
-        if id:
+        if id and datas is None:
             self._load(id)
         
         if self.datas is None and datas is not None:

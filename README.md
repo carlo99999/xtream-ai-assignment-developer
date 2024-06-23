@@ -75,6 +75,8 @@ It cannot predict the prices for more than one diamond at a time, but since the 
 
 Anyway, I think that is a good feature we can implement in the future for Don Francesco. Using my codebase is going to be pretty easy, but the drawback of using Streamlit is that it gets really messy really fast, so I think it's better to address a large number of diamonds with the API and DB approach.
 
+First thing first i have to build an ORM, I've decided to go with FastAPI for the APIs and SQLAlchemy for the ORM
+
 ---
 
 ## How to run 🦎
