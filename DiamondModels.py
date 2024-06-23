@@ -35,8 +35,8 @@ file_readers = {
 }
 
 modelling_algorithms = {
+    "XGBRegressor": XGBRegressor,
     "LinearRegression": LinearRegression,
-    "XGBRegressor": XGBRegressor
 }
 
 class DiamondModel:
@@ -50,7 +50,7 @@ class DiamondModel:
         - LinearRegression
         - XGBRegressor
     """
-    def __init__(self, datas: Union[pd.DataFrame, str] = None, id: str = None, model: str = None) -> None:
+    def __init__(self, datas: Union[pd.DataFrame, str] = None, id: str = None, model: str = None,folder:str="models") -> None:
         if datas is None and id is None:
             raise ValueError("You must provide data to train the model or an id to load the model")
         if id is None and model is None:
@@ -68,7 +68,7 @@ class DiamondModel:
             self.datas = datas
         
         if id and datas is None:
-            self._load(id)
+            self._load(id,folder)
         
         if self.datas is None and datas is not None:
             raise ValueError("The data could not be loaded")
@@ -115,12 +115,11 @@ class DiamondModel:
                 return reader(file_path)
         raise ValueError(f"Unsupported file extension: {file_path}")
 
-    def _load(self, id: str):
-        model_path = f'models/{id}_{self.model_name}.pkl'
-        data_path = f'models/{id}_datas.csv'
-        dummies_path = f'models/{id}_dummies.csv'
-        processed_path = f'models/{id}_processed.csv'
-        
+    def _load(self, id: str, folder: str = 'models'):
+        model_path = f'{folder}/{id}_{self.model_name}.pkl'
+        data_path = f'{folder}/{id}_datas.csv'
+        dummies_path = f'{folder}/{id}_dummies.csv'
+        processed_path = f'{folder}/{id}_processed.csv'
         if os.path.exists(model_path) and os.path.exists(data_path):
             self.model_trained = joblib.load(model_path)
             self.datas = pd.read_csv(data_path)
@@ -129,12 +128,13 @@ class DiamondModel:
         else:
             raise ValueError("The model does not exist")
 
-    def _save(self):
-        os.makedirs('models', exist_ok=True)
-        joblib.dump(self.model_trained, f'models/{self.id}_{self.model_name}.pkl')
-        self.datas.to_csv(f'models/{self.id}_datas.csv', index=False)
-        self.datas_dummies.to_csv(f'models/{self.id}_dummies.csv', index=False)
-        self.datas_processed.to_csv(f'models/{self.id}_processed.csv', index=False)
+    def _save(self,folder_to_save:str=None):
+        folder_to_save = folder_to_save if folder_to_save else 'models'
+        os.makedirs(folder_to_save, exist_ok=True)
+        joblib.dump(self.model_trained, f'{folder_to_save}/{self.id}_{self.model_name}.pkl')
+        self.datas.to_csv(f'{folder_to_save}/{self.id}_datas.csv', index=False)
+        self.datas_dummies.to_csv(f'{folder_to_save}/{self.id}_dummies.csv', index=False)
+        self.datas_processed.to_csv(f'{folder_to_save}/{self.id}_processed.csv', index=False)
 
     def clean_data(self, columns_to_drop: list[str] = ['depth', 'table', 'y', 'z'], columns_to_dummies: list[str] = ['cut', 'color', 'clarity']):
         self.datas = self.datas.dropna()
@@ -165,7 +165,7 @@ class DiamondModel:
             fig.write_html(f'visualizations/{self.id}_price_by_{cut_column}.html')
         return fig
 
-    def train_model(self) -> float:
+    def train_model(self,folder_to_save:str=None) -> float:
         if not hasattr(self, 'datas_dummies'):
             warnings.warn("The data is not yet cleaned, cleaning it now using the default columns to drop")
             self.clean_data()
@@ -193,7 +193,7 @@ class DiamondModel:
         mae = mean_absolute_error(y_test, y_pred)
         self.predictions = y_pred
         self.GT_Y = y_test
-        self._save()
+        self._save(folder_to_save)
         return mae
 
     def plot_predictions_vs_actual(self, save: bool = False):
@@ -212,7 +212,7 @@ class DiamondModel:
             raise ValueError("Data is not loaded.")
         if carat <= 0 or n <= 0:
             raise ValueError("Carat and n must be greater than 0")
-        if carat > max(self.datas['carat']) or carat < min(self.datas['carat']):
+        if carat > max(self.datas['carat'])*1.2 or carat < min(self.datas['carat'])*0.8:
             raise ValueError("Carat must be within the range of the dataset")
         if n > len(self.datas):
             return self.datas
@@ -228,4 +228,3 @@ class DiamondModel:
         similar_samples = filtered_data.sort_values(by='weight_diff').head(n)
         return similar_samples.drop(columns=['weight_diff'])
 
-# You can now create an instance of DiamondModel and use it as needed.

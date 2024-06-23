@@ -6,6 +6,7 @@ import os
 import pandas.api.types as ptypes
 
 existing_model_ids = list(modelling_algorithms.keys())
+st.set_page_config(layout="wide",initial_sidebar_state="collapsed")
 
 if "loaded_model" not in st.session_state:
     st.session_state.loaded_model = False
@@ -22,6 +23,7 @@ if "success_string" not in st.session_state:
 
 
 st.title("Diamond Price Prediction")
+
 
 
 models_id={}
@@ -213,9 +215,3 @@ if st.button("Go back",key="save"):
         if i=="columns_to_drop":
             st.session_state.columns_to_drop=[]
     st.rerun()
-        
-        
-    
-    
-    
-        
