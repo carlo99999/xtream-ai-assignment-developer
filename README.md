@@ -105,7 +105,7 @@ pip install -r requirements.txt
 and running:
 
 ```bash
-streamlit run PipelineInterface.py
+streamlit run PipelineVisualInterface.py
 ```
 
 I have used an anaconda env to run my scripts, so I'm going to add both the 'conda_packages.txt' and 'requirements.txt' files
@@ -114,7 +114,7 @@ I have used an anaconda env to run my scripts, so I'm going to add both the 'con
 
 - - On the first you have to run 
 ```bash
-streamlit run PipelineInterface.py
+streamlit run APIsInterface.py
 ```
 
 - - On the second you have to run 
