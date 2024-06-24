@@ -73,13 +73,16 @@ I decided to create a fully integrated web app that can create, load, and save m
 
 The current implementation cannot predict prices for more than one diamond at a time. However, considering the use case of "determining the prices for diamonds customers want to sell," it is reasonable to assume that retail customers are unlikely to present a large number of diamonds at once. Despite this, I acknowledge that supporting batch predictions could be a valuable feature to implement in the future for Don Francesco. Using my codebase, this enhancement will be straightforward. However, due to the potential complexity of managing large datasets, it is better to handle a large number of diamonds using an API and database approach.
 
-To achieve this, I started by building an ORM (Object Relational Mapping) using SQLAlchemy and FastAPI for the APIs. The final product is very similar to the `PipelineInterface` used for Challenges 2 and 3.
+To achieve this, I started by building an ORM (Object Relational Mapping) using SQLAlchemy and FastAPI for the APIs. The final product is very similar to the `PipelineVisualInterface` used for Challenges 2 and 3.
 
 I have made sure to provide users with the flexibility to use their own data for predicting the prices of their diamonds, but there is always the option to use the default model we have trained.
 
 I chose FastAPI because it is the fastest Python framework available for building APIs. For the user interface, I used Streamlit because it is quick to set up and offers many built-in features. However, for a full-fledged website, I would prefer Django due to its robustness.
 
 There are a few aspects left as TODOs, such as renaming columns if they do not match exactly with the expected names in the dataset, and other minor details. While these enhancements would improve the user experience, they would also add significant complexity.
+
+I've added a much easier Pipeline that trains a model you define on datas you want, like `PipelineVisualInterface`, but using only the terminal.
+
 
 #### Future Enhancements
 
@@ -95,7 +98,11 @@ Overall, I believe that the current implementation offers a solid foundation, an
 
 ## How to run 🦎
 
-- The pipeline for Challenge 1 and 2 can be run by installing the requirements and running:
+- The pipeline for Challenge 1 and 2 can be run by installing the requirements with 
+```bash
+pip install -r requirements.txt
+```
+and running:
 
 ```bash
 streamlit run PipelineInterface.py
@@ -113,4 +120,8 @@ streamlit run PipelineInterface.py
 - - On the second you have to run 
 ```bash
 uvicorn APIs:app 
+```
+- To run the Easier pipeline you have to run:
+```bash
+python Pipeline.py NameOfTheModel /path/of/the/datas/you/want/to/train/the/model/with
 ```

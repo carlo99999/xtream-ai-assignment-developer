@@ -6,7 +6,7 @@ import os
 import json
 from streamlit_navigation_bar import st_navbar
 from options.navbar_option import options, styles,logo,pages
-from pages import home,load_datas, use_your_trained_model, use_our_best_model, about,get_diamond_similarity
+from pages_for_api import home,load_datas, use_your_trained_model, use_our_best_model, about,get_diamond_similarity
 import uuid
 
 if "id" not in st.session_state:

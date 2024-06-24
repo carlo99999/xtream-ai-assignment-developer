@@ -15,6 +15,7 @@ import logging
 from typing import Union, List, Dict
 import numpy as np
 from abc import ABC, abstractmethod
+import json
 
 logging.basicConfig(level=logging.INFO)
 
@@ -290,16 +291,23 @@ class DiamondModel:
             self.model_trained = self.model(**best_params, enable_categorical=True, random_state=42)
             self.model_trained.fit(X_train, y_train)
             y_pred = self.model_trained.predict(X_test)
+            parameters = {**best_params, 'n_estimators': self.model_trained.n_estimators}
         else:
             self.model_trained = self.model()
             y_train = np.log(y_train)
             self.model_trained.fit(X_train, y_train)
             y_pred = np.exp(self.model_trained.predict(X_test))
+            parameters ={'fit_intercept':self.model_trained.fit_intercept, 'normalize':self.model_trained.normalize if hasattr(self.model,'normalize') else None, 'copy_X':self.model_trained.copy_X, 'n_jobs':self.model_trained.n_jobs}
+        
         
         mae = mean_absolute_error(y_test, y_pred)
         self.predictions = y_pred
         self.GT_Y = y_test
         self._save(folder_to_save)
+        parameters['mae'] = mae
+        logging.info(f"Model trained with parameters: {parameters}")
+        with open(f'{self.folder}/{self.id}_parameters.json', 'w') as f:
+            json.dump(parameters, f)
         return mae
 
     def plot_predictions_vs_actual(self, save: bool = False):
@@ -359,3 +367,5 @@ class DiamondModel:
         filtered_data['weight_diff'] = (filtered_data['carat'] - carat).abs()
         similar_samples = filtered_data.sort_values(by='weight_diff').head(n)
         return similar_samples.drop(columns=['weight_diff'])
+
+
