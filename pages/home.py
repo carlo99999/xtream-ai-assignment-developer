@@ -16,9 +16,10 @@ def home():
     """)
     
     st.markdown("""
-    1. **Load Datas**: You can decide to load the data you want to use to train the model, or you can use our pretrained models.
-    2. **Use Our Best Models**: You can use our (pre)trained models to predict the price of a diamond.
-    3. **Get Diamond Similarity**: You can use this feature to get the similarity of a diamond to the ones in the dataset.
+    - **Load Datas**: You can decide to load the data you want to use to train the model, or you can use our pretrained models.
+    - **Use Your Trained Model**: You can train your own model using your dataset.
+    - **Use Our Best Models**: You can use our (pre)trained models to predict the price of a diamond.
+    - **Get Diamond Similarity**: You can use this feature to get the similarity of a diamond to the ones in the dataset.
     """)
     
     st.markdown("""

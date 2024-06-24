@@ -58,6 +58,11 @@ def upload_datas(
         datas=pd.read_excel(file.filr)
     elif file_name.split(".")[-1]=="json":
         datas=pd.read_json(file.file)
+    
+    for i in datas.columns:
+        if i.lower().find("unnamed")!=-1:
+            datas.drop(columns=[i],inplace=True)
+    
     datas.to_csv(f"datas_uploaded/{id}.csv",index=False)
     ### Check if the datas contains the required columns
     for column in ["carat", "cut", "color", "clarity", "depth", "table", "price", "x", "y", "z"]:

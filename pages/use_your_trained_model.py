@@ -70,7 +70,6 @@ def predict_with_trained_model(id):
     st.markdown("""
     <div style="text-align: center;">
         <h3>Make Predictions with Your Trained Model</h3>
-        <p>Choose a model from the dropdown menu and upload a dataset to make predictions using the trained model.</p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -98,7 +97,7 @@ def predict_with_trained_model(id):
     
     # Aggiungi un pulsante per fare le predizioni
     if st.button("Make Predictions"):
-        st.write("Making prediction    s...")
+        st.write("Making predictions...")
         url = f"http://localhost:8000/api/predict/"
         response = requests.post(url, json=diz,params={"id":id})
         if response.status_code == 200:

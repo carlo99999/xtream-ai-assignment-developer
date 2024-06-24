@@ -193,6 +193,7 @@ if st.session_state.prediction and st.session_state.model!=None:
                 df[i]=df_tmp[i]
         df.fillna(False,inplace=True)
         df.drop(columns=["price"],inplace=True)
+        df.to_csv("tmp.csv",index=False)
         prediction=model.predict(df)
         st.markdown(f"""
         ✨ **The probable market value of the diamond is {prediction[0]:.2f}** ✨
