@@ -83,12 +83,15 @@ There are a few aspects left as TODOs, such as renaming columns if they do not m
 
 I've added a much easier Pipeline that trains a model you define on datas you want, like `PipelineVisualInterface`, but using only the terminal.
 
+I think the Visual interface one is better and easier to use, but is more difficult to automate.
+
 
 #### Future Enhancements
 
 1. **Batch Predictions**: Implementing batch predictions for handling multiple diamonds at once, making it more convenient for users dealing with larger inventories.
 2. **Column Renaming**: Adding functionality to automatically rename columns if they do not match the expected names, improving the flexibility and usability of the app.
 3. **Full Website Integration**: Considering a more robust solution using Django for building a comprehensive web application, which can handle more extensive features and provide better scalability.
+4. **AIRFLOW Integration**: Integrate the pipeline in airflow
 
 Overall, I believe that the current implementation offers a solid foundation, and with the proposed enhancements, it can significantly improve the quality of life for users. However, balancing simplicity and functionality is crucial to avoid unnecessary complexity.
 
