@@ -317,12 +317,12 @@ class DiamondModel:
             raise ValueError("The model provided is not yet supported")
         
         self.folder = folder
-
-        if id is None:
+        
+        if id is None and datas is not None:
             self._create_new_model(datas, folder, model)
-        elif id:
+        elif id and datas is None:
             self._load(id)
-        elif id and datas:
+        elif id and datas is not None:
             if not self._check_if_model_exists(id):
                 self._create_new_model(datas, folder, model, id)
 
@@ -441,10 +441,19 @@ class DiamondModel:
         Returns:
         pd.DataFrame: The prepared dataframe with the same columns as the blueprint.
         """
+        ## Check if the target column is in the data blueprint
+        if target_column in data_blueprint.columns:
+            data_blueprint = data_blueprint.drop(columns=[target_column])
+        ## Check if the columns are the same,if they are the same, return the data_to_predict
+        if list(data_to_predict.columns) == list(data_blueprint.columns):
+            return data_to_predict
+        
         blueprint_columns = set(col.split('_')[0] for col in data_blueprint.columns)
         data_columns = set(data_to_predict.columns)
         missing_columns = blueprint_columns - data_columns
         if missing_columns:
+            print(data_columns)
+            print("#"*100)
             raise ValueError(f"Missing columns in the data you want to predict: {missing_columns}")
 
         columns_to_dummies = data_to_predict.select_dtypes(include=['object']).columns
@@ -454,8 +463,7 @@ class DiamondModel:
                 predict[col] = 0
 
         predict = predict[data_blueprint.columns]
-        if target_column in predict.columns:
-            predict = predict.drop(columns=[target_column])
+        
             
         return predict
 
