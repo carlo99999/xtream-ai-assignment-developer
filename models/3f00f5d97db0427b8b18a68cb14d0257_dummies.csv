@@ -1,6 +1,0 @@
-carat,price,x,cut_Ideal,cut_Premium,color_I,color_J,clarity_SI2,clarity_VS1,clarity_VS2
-0.23,326,3.95,True,False,False,False,True,False,False
-0.21,326,3.89,False,True,False,False,False,False,False
-0.23,327,4.05,False,False,False,False,False,True,False
-0.29,334,4.2,False,True,True,False,False,False,True
-0.31,335,4.34,False,False,False,True,True,False,False

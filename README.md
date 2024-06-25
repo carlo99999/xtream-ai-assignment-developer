@@ -69,62 +69,81 @@ Observability is key. Save every request and response made to the APIs to a **pr
 
 ### Personal Consideration and Choices
 
-I decided to create a fully integrated web app that can create, load, and save models, ensuring that Challenges 1 and 2 are covered comprehensively. Moreover, the `DiamondModels` class should address Challenges 3 and 4 with almost no modifications.
+I decided to create a fully integrated web app that can create, load, and save models, ensuring comprehensive coverage of Challenges 1 and 2. Additionally, the `DiamondModel` class effectively addresses Challenges 3 and 4 with minimal modifications.
 
-The current implementation cannot predict prices for more than one diamond at a time. However, considering the use case of "determining the prices for diamonds customers want to sell," it is reasonable to assume that retail customers are unlikely to present a large number of diamonds at once. Despite this, I acknowledge that supporting batch predictions could be a valuable feature to implement in the future for Don Francesco. Using my codebase, this enhancement will be straightforward. However, due to the potential complexity of managing large datasets, it is better to handle a large number of diamonds using an API and database approach.
+The current implementation supports predictions for one diamond at a time. While this is suitable for retail customers who typically sell individual diamonds, supporting batch predictions for multiple diamonds would be a valuable future enhancement. This feature is relatively straightforward to implement within my existing codebase. However, managing large datasets is better suited for an API and database approach.
 
-To achieve this, I started by building an ORM (Object Relational Mapping) using SQLAlchemy and FastAPI for the APIs. The final product is very similar to the `PipelineVisualInterface` used for Challenges 2 and 3.
+To achieve this, I developed an ORM (Object Relational Mapping) using SQLAlchemy and FastAPI for the APIs. The final product closely resembles the `PipelineVisualInterface` used for Challenges 2 and 3.
 
-I have made sure to provide users with the flexibility to use their own data for predicting the prices of their diamonds, but there is always the option to use the default model we have trained.
+I ensured users have the flexibility to use their own data for predicting diamond prices, with the option to use a pre-trained default model. 
 
-I chose FastAPI because it is the fastest Python framework available for building APIs. For the user interface, I used Streamlit because it is quick to set up and offers many built-in features. However, for a full-fledged website, I would prefer Django due to its robustness.
+I chose FastAPI for its speed and efficiency in building APIs. For the user interface, I used Streamlit due to its quick setup and extensive built-in features. For a more robust and comprehensive web application, I would prefer Django.
 
-There are a few aspects left as TODOs, such as renaming columns if they do not match exactly with the expected names in the dataset, and other minor details. While these enhancements would improve the user experience, they would also add significant complexity.
+There are a few aspects left as TODOs, such as renaming columns to match expected names in the dataset. While these enhancements would improve user experience, they add complexity.
 
-I've added a much easier Pipeline that trains a model you define on datas you want, like `PipelineVisualInterface`, but using only the terminal.
+I've also added a simpler pipeline for training a model on user-defined data using the terminal, similar to `PipelineVisualInterface`, but easier to automate.
 
-I think the Visual interface one is better and easier to use, but is more difficult to automate.
-
+Although the visual interface is more user-friendly, it is more challenging to automate.
 
 #### Future Enhancements
 
-1. **Batch Predictions**: Implementing batch predictions for handling multiple diamonds at once, making it more convenient for users dealing with larger inventories.
-2. **Column Renaming**: Adding functionality to automatically rename columns if they do not match the expected names, improving the flexibility and usability of the app.
-3. **Full Website Integration**: Considering a more robust solution using Django for building a comprehensive web application, which can handle more extensive features and provide better scalability.
-4. **AIRFLOW Integration**: Integrate the pipeline in airflow
+1. **Batch Predictions**: Implementing batch predictions to handle multiple diamonds at once, making it more convenient for users with larger inventories.
+2. **Column Renaming**: Adding functionality to automatically rename columns if they do not match the expected names, improving flexibility and usability.
+3. **Full Website Integration**: Developing a more robust solution using Django for a comprehensive web application, which can handle extensive features and provide better scalability.
+4. **Airflow Integration**: Integrating the pipeline with Airflow for better workflow management.
 
-Overall, I believe that the current implementation offers a solid foundation, and with the proposed enhancements, it can significantly improve the quality of life for users. However, balancing simplicity and functionality is crucial to avoid unnecessary complexity.
+Overall, the current implementation provides a solid foundation. With the proposed enhancements, it can significantly improve the user experience. Balancing simplicity and functionality is crucial to avoid unnecessary complexity.
 
 
 
 ---
 
-## How to run 🦎
+## How to Run 🦎
 
-- The pipeline for Challenge 1 and 2 can be run by installing the requirements with 
+### Prerequisites
+
+Make sure you have an anaconda environment set up as I have used it to run the scripts. You can find both `conda_packages.txt` and `requirements.txt` files included.
+
+### Setting Up
+
+1. **Install the required packages**:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+### Running the Visual Interface for Challenge 1 and 2
+
+1. **Start the Streamlit visual interface**:
+   ```bash
+   streamlit run PipelineVisualInterface.py
+   ```
+
+### Running the Web App
+
+The web app requires two open terminals to run:
+
+1. **In the first terminal**, start the Streamlit interface for the APIs:
+   ```bash
+   streamlit run APIsInterface.py
+   ```
+
+2. **In the second terminal**, start the FastAPI server using Uvicorn:
+   ```bash
+   uvicorn APIs:app 
+   ```
+
+### Running the Easier Pipeline
+
+To run the simpler pipeline, execute the following command:
 ```bash
-pip install -r requirements.txt
+python Pipeline.py <NameOfTheModel> <path/to/your/datafile>
 ```
-and running:
+Replace `<NameOfTheModel>` with the desired model name and `<path/to/your/datafile>` with the path to the dataset you want to use for training.
 
-```bash
-streamlit run PipelineVisualInterface.py
-```
+### Additional Notes
 
-I have used an anaconda env to run my scripts, so I'm going to add both the 'conda_packages.txt' and 'requirements.txt' files
+- The visual interface provides an easy-to-use GUI for creating, loading, and saving models.
+- The web app with Streamlit and FastAPI offers a more interactive experience for handling models and predictions.
+- The simpler pipeline allows for straightforward model training and prediction using terminal commands, making it suitable for automation.
 
-- The app requires 2 open terminals:
-
-- - On the first you have to run 
-```bash
-streamlit run APIsInterface.py
-```
-
-- - On the second you have to run 
-```bash
-uvicorn APIs:app 
-```
-- To run the Easier pipeline you have to run:
-```bash
-python Pipeline.py NameOfTheModel /path/of/the/datas/you/want/to/train/the/model/with
-```
+By following these steps, you should be able to set up and run the various components of the project seamlessly.
