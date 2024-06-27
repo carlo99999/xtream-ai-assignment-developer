@@ -15,6 +15,11 @@ from typing import Union, List, Dict
 import numpy as np
 from abc import ABC, abstractmethod
 import json
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from sklearn.preprocessing import StandardScaler
+
 
 logging.basicConfig(level=logging.INFO)
 
@@ -181,6 +186,148 @@ class LinearRegressionModel(BaseModel):
         self.params = params
         return params
 
+class MLP(nn.Module):
+    """
+    Simple MLP model using PyTorch.
+    """
+    def __init__(self, input_dim, hidden_dim, output_dim):
+        super(MLP, self).__init__()
+        self.l1 = nn.Linear(input_dim, hidden_dim)
+        self.l2 = nn.Linear(hidden_dim, hidden_dim)
+        self.l3=nn.Linear(hidden_dim,hidden_dim)
+        self.l4=nn.Linear(hidden_dim,hidden_dim)
+        self.l5=nn.Linear(hidden_dim,hidden_dim)
+        self.l6 = nn.Linear(hidden_dim, output_dim)
+    
+    def forward(self, x):
+        x = torch.relu(self.l1(x))
+        x= torch.relu(self.l2(x))
+        x= torch.relu(self.l3(x))
+        x= torch.relu(self.l4(x))
+        x= torch.relu(self.l5(x))
+        
+        x = self.l6(x)
+        return x
+
+class MLPModel(BaseModel):
+    """
+    Wrapper for the MLP model using PyTorch.
+    """
+    def __init__(self, input_dim: int = 20, hidden_dim: int = 128, output_dim: int = 1, id: str = None) -> None:
+        """
+        Initialize the MLPModel.
+        
+        Params:
+        input_dim (int): Number of input features.
+        hidden_dim (int): Number of hidden units.
+        output_dim (int): Number of output units.
+        id (str): Optional model ID to load a saved model.
+        """
+        super().__init__()
+        if id is None:
+            self.model = MLP(input_dim, hidden_dim, output_dim)
+        else:
+            self.load(id)
+        
+    def train(self, X_train: pd.DataFrame, y_train: pd.Series, epochs: int = 1000, lr: float = 0.001) -> None:
+        """
+        Train the MLP model.
+        
+        Params:
+        X_train (pd.DataFrame): Training features.
+        y_train (pd.Series): Training target.
+        epochs (int): Number of training epochs.
+        lr (float): Learning rate.
+        """
+        self.model_trained = self.model
+        self.scaler=StandardScaler()
+        optimizer = optim.Adam(self.model_trained.parameters(), lr=lr)
+        loss_fn = nn.MSELoss()
+        
+        X_train = torch.tensor(X_train.values, dtype=torch.float32)
+        y_train = y_train.values if isinstance(y_train, pd.Series) else y_train
+        y_train=self.scaler.fit_transform(y_train.reshape(-1,1))
+        y_train = torch.tensor(y_train, dtype=torch.float32).view(-1, 1)
+        
+        self.lr = lr
+        self.epoch = epochs
+        
+        for epoch in range(epochs):
+            self.model_trained.train()
+            optimizer.zero_grad()
+            y_pred = self.model_trained(X_train)
+            loss = loss_fn(y_pred, y_train)
+            loss.backward()
+            optimizer.step()
+            
+            if (epoch+1) % 100 == 0:
+                print(f'Epoch {epoch+1}, Loss: {loss.item()}')
+        
+    def predict(self, X: Union[pd.DataFrame, pd.Series]) -> pd.Series:
+        """
+        Predict using the MLP model.
+        
+        Params:
+        X (Union[pd.DataFrame, pd.Series]): Features to predict.
+
+        Returns:
+        pd.Series: Predictions.
+        """
+        self.model_trained.eval()
+        X = torch.tensor(X.values, dtype=torch.float32)
+        with torch.no_grad():
+            y_pred = self.model_trained(X)
+        y_pred=self.scaler.inverse_transform(y_pred.numpy())
+        return pd.Series(y_pred.flatten())
+    
+    def save(self, path: str) -> None:
+        """
+        Save the MLP model to a file.
+        
+        Params:
+        path (str): Path to save the model.
+        """
+        torch.save(self.model_trained.state_dict(), path)
+        
+    def load(self, path: str) -> None:
+        """
+        Load the MLP model from a file.
+        
+        Params:
+        path (str): Path to load the model.
+        """
+        self.model_trained = self.model
+        self.model_trained.load_state_dict(torch.load(path))
+        
+    def evaluate(self, X: pd.DataFrame, y: pd.Series) -> Dict[str, float]:
+        """
+        Evaluate the MLP model.
+        
+        Params:
+        X (pd.DataFrame): Features to evaluate.
+        y (pd.Series): True values.
+
+        Returns:
+        Dict[str, float]: Evaluation metrics.
+        """
+        y_pred = self.predict(X)
+        mae = mean_absolute_error(y, y_pred)
+        mse = mean_squared_error(y, y_pred)
+        self.mae_mse = {"mae": mae, "mse": mse}
+        return self.mae_mse
+    
+    def get_params(self) -> Dict[str, float]:
+        """
+        Get the MLP model parameters.
+        
+        Returns:
+        Dict[str, float]: Model parameters.
+        """
+        params = {"hidden_units": self.model.l1.out_features,
+                  "learning_rate": self.lr, **self.mae_mse}
+        self.params = params
+        return params
+
 class XGBRegressorModel(BaseModel):
     """
     Wrapper for the XGBRegressor model from xgboost.
@@ -271,6 +418,9 @@ class XGBRegressorModel(BaseModel):
         self.params = params
         return params
 
+    
+
+
 file_readers = {
     '.csv': pd.read_csv,
     '.xlsx': pd.read_excel,
@@ -293,6 +443,7 @@ file_readers = {
 modelling_algorithms = {
     "XGBRegressor": XGBRegressorModel,
     "LinearRegression": LinearRegressionModel,
+    #"MLP": MLPModel   ## Added this to prove the point that my classes are pretty flexible
 }
 
 class DiamondModel:
@@ -457,7 +608,7 @@ class DiamondModel:
             raise ValueError(f"Missing columns in the data you want to predict: {missing_columns}")
 
         columns_to_dummies = data_to_predict.select_dtypes(include=['object']).columns
-        predict = pd.get_dummies(data_to_predict, columns=columns_to_dummies)
+        predict = pd.get_dummies(data_to_predict, columns=columns_to_dummies,dtype=float)
         for col in data_blueprint.columns:
             if col not in predict.columns:
                 predict[col] = 0
@@ -556,7 +707,7 @@ class DiamondModel:
         self.datas_processed = self.datas.drop(columns=columns_to_drop)
         
         columns = [col for col in columns_to_dummies if col not in columns_to_drop or col.find('Unnamed') == -1]
-        self.datas_dummies = pd.get_dummies(self.datas_processed, columns=columns, drop_first=True)
+        self.datas_dummies = pd.get_dummies(self.datas_processed, columns=columns, drop_first=True,dtype=float)
 
     def visualize_scatter_matrix(self, save: bool = False) -> plt.Figure:
         """

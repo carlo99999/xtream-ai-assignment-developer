@@ -85,6 +85,8 @@ I've also added a simpler pipeline for training a model on user-defined data usi
 
 Although the visual interface is more user-friendly, it is more challenging to automate.
 
+To demonstrate the flexibility of my classes, I added a Multilayer Perceptron (MLP) model that works seamlessly with the existing framework. This addition showcases how easily new models can be integrated and used within the current structure.
+
 #### Future Enhancements
 
 1. **Batch Predictions**: Implementing batch predictions to handle multiple diamonds at once, making it more convenient for users with larger inventories.
