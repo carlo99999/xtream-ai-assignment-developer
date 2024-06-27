@@ -187,33 +187,38 @@ class LinearRegressionModel(BaseModel):
         return params
 
 class MLP(nn.Module):
-    """
-    Simple MLP model using PyTorch.
-    """
-    def __init__(self, input_dim, hidden_dim, output_dim):
-        super(MLP, self).__init__()
-        self.l1 = nn.Linear(input_dim, hidden_dim)
-        self.l2 = nn.Linear(hidden_dim, hidden_dim)
-        self.l3=nn.Linear(hidden_dim,hidden_dim)
-        self.l4=nn.Linear(hidden_dim,hidden_dim)
-        self.l5=nn.Linear(hidden_dim,hidden_dim)
-        self.l6 = nn.Linear(hidden_dim, output_dim)
-    
-    def forward(self, x):
-        x = torch.relu(self.l1(x))
-        x= torch.relu(self.l2(x))
-        x= torch.relu(self.l3(x))
-        x= torch.relu(self.l4(x))
-        x= torch.relu(self.l5(x))
-        
-        x = self.l6(x)
-        return x
+    def __init__(self, input_dim: int, hidden_dim: int, output_dim: int, num_hidden_layers: int = 5):
+        """
+        Multi-Layer Perceptron (MLP) model.
 
+        :param input_dim: Dimension of the input features.
+        :param hidden_dim: Dimension of the hidden layers.
+        :param output_dim: Dimension of the output layer.
+        :param num_hidden_layers: Number of hidden layers in the model.
+        """
+        super(MLP, self).__init__()
+        
+        self.input_layer = nn.Linear(input_dim, hidden_dim)
+        self.hidden_layers = nn.ModuleList([nn.Linear(hidden_dim, hidden_dim) for _ in range(num_hidden_layers)])
+        self.output_layer = nn.Linear(hidden_dim, output_dim)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Forward pass through the MLP.
+
+        :param x: Input tensor.
+        :return: Output tensor.
+        """
+        x = torch.relu(self.input_layer(x))
+        for layer in self.hidden_layers:
+            x = torch.relu(layer(x))
+        x = self.output_layer(x)
+        return x
 class MLPModel(BaseModel):
     """
     Wrapper for the MLP model using PyTorch.
     """
-    def __init__(self, input_dim: int = 20, hidden_dim: int = 128, output_dim: int = 1, id: str = None) -> None:
+    def __init__(self, input_dim: int = 19, hidden_dim: int = 128, output_dim: int = 1, id: str = None) -> None:
         """
         Initialize the MLPModel.
         
@@ -228,6 +233,9 @@ class MLPModel(BaseModel):
             self.model = MLP(input_dim, hidden_dim, output_dim)
         else:
             self.load(id)
+        self.scaler = None
+        self.mae_mse = None
+        
         
     def train(self, X_train: pd.DataFrame, y_train: pd.Series, epochs: int = 1000, lr: float = 0.001) -> None:
         """
@@ -288,6 +296,7 @@ class MLPModel(BaseModel):
         path (str): Path to save the model.
         """
         torch.save(self.model_trained.state_dict(), path)
+        joblib.dump(self.scaler, f"{path.split('.')[0]}_scaler.pkl")
         
     def load(self, path: str) -> None:
         """
@@ -296,8 +305,15 @@ class MLPModel(BaseModel):
         Params:
         path (str): Path to load the model.
         """
-        self.model_trained = self.model
-        self.model_trained.load_state_dict(torch.load(path))
+        self.model = MLP(19, 128, 1)
+        if path.endswith('scaler.pkl'):
+            self.scaler = joblib.load(path)
+            
+        else:
+            self.model.load_state_dict(torch.load(path))
+            self.model_trained = self.model
+            
+        
         
     def evaluate(self, X: pd.DataFrame, y: pd.Series) -> Dict[str, float]:
         """
@@ -323,7 +339,7 @@ class MLPModel(BaseModel):
         Returns:
         Dict[str, float]: Model parameters.
         """
-        params = {"hidden_units": self.model.l1.out_features,
+        params = {"hidden_units": self.model.input_layer.out_features,
                   "learning_rate": self.lr, **self.mae_mse}
         self.params = params
         return params
@@ -352,7 +368,7 @@ class XGBRegressorModel(BaseModel):
         X_train (pd.DataFrame): Training features.
         y_train (pd.Series): Training target.
         """
-        best_params = DiamondModel.find_best_hyperparameters(X_train, y_train, n_trials=1)
+        best_params = XGBRegressorModel.find_best_hyperparameters(X_train, y_train, n_trials=100)
         self.best_params = best_params
         self.model_trained = self.model(**best_params, enable_categorical=True, random_state=42)
         self.model_trained.fit(X_train, y_train)
@@ -377,6 +393,7 @@ class XGBRegressorModel(BaseModel):
         path (str): Path to save the model.
         """
         joblib.dump(self.model_trained, path)
+        
         
     def load(self, path: str) -> None:
         """
@@ -418,6 +435,56 @@ class XGBRegressorModel(BaseModel):
         self.params = params
         return params
 
+    @staticmethod
+    def objective(x_train_xgb: pd.DataFrame, y_train_xgb: pd.Series, trial: optuna.trial.Trial) -> float:
+        """
+        Objective function for hyperparameter optimization using Optuna.
+
+        Params:
+        x_train_xgb (pd.DataFrame): Training features for XGBoost.
+        y_train_xgb (pd.Series): Training labels for XGBoost.
+        trial (optuna.trial.Trial): Optuna trial object.
+
+        Returns:
+        float: Mean absolute error on validation set.
+        """
+        param = {
+            'lambda': trial.suggest_float('lambda', 1e-8, 1.0, log=True),
+            'alpha': trial.suggest_float('alpha', 1e-8, 1.0, log=True),
+            'colsample_bytree': trial.suggest_categorical('colsample_bytree', [0.3, 0.4, 0.5, 0.7]),
+            'subsample': trial.suggest_categorical('subsample', [0.5, 0.6, 0.7, 0.8, 0.9, 1.0]),
+            'learning_rate': trial.suggest_float('learning_rate', 1e-8, 1.0, log=True),
+            'n_estimators': trial.suggest_int('n_estimators', 100, 1000),
+            'max_depth': trial.suggest_int('max_depth', 3, 9),
+            'random_state': 42,
+            'min_child_weight': trial.suggest_int('min_child_weight', 1, 10),
+            'enable_categorical': True
+        }
+
+        x_train, x_val, y_train, y_val = train_test_split(x_train_xgb, y_train_xgb, test_size=0.2, random_state=42)
+        model = XGBRegressor(**param)
+        model.fit(x_train, y_train)
+        preds = model.predict(x_val)
+        mae = mean_absolute_error(y_val, preds)
+        return mae
+
+    @staticmethod
+    def find_best_hyperparameters(x_train_xgb: pd.DataFrame, y_train_xgb: pd.Series, n_trials: int = 100) -> dict:
+        """
+        Find the best hyperparameters for XGBoost using Optuna.
+
+        Params:
+        x_train_xgb (pd.DataFrame): Training features for XGBoost.
+        y_train_xgb (pd.Series): Training labels for XGBoost.
+        n_trials (int): Number of trials for Optuna optimization.
+
+        Returns:
+        dict: Best hyperparameters found.
+        """
+        study = optuna.create_study(direction='minimize')
+        study.optimize(lambda trial: XGBRegressorModel.objective(x_train_xgb, y_train_xgb, trial), n_trials=n_trials)
+        return study.best_params
+
     
 
 
@@ -443,7 +510,7 @@ file_readers = {
 modelling_algorithms = {
     "XGBRegressor": XGBRegressorModel,
     "LinearRegression": LinearRegressionModel,
-    #"MLP": MLPModel   ## Added this to prove the point that my classes are pretty flexible
+    "MLP": MLPModel   ## Added this to prove the point that my classes are pretty flexible
 }
 
 class DiamondModel:
@@ -513,56 +580,6 @@ class DiamondModel:
 
         if self.datas is None and datas is not None:
             raise ValueError("The data could not be loaded")
-
-    @staticmethod
-    def objective(x_train_xgb: pd.DataFrame, y_train_xgb: pd.Series, trial: optuna.trial.Trial) -> float:
-        """
-        Objective function for hyperparameter optimization using Optuna.
-
-        Params:
-        x_train_xgb (pd.DataFrame): Training features for XGBoost.
-        y_train_xgb (pd.Series): Training labels for XGBoost.
-        trial (optuna.trial.Trial): Optuna trial object.
-
-        Returns:
-        float: Mean absolute error on validation set.
-        """
-        param = {
-            'lambda': trial.suggest_float('lambda', 1e-8, 1.0, log=True),
-            'alpha': trial.suggest_float('alpha', 1e-8, 1.0, log=True),
-            'colsample_bytree': trial.suggest_categorical('colsample_bytree', [0.3, 0.4, 0.5, 0.7]),
-            'subsample': trial.suggest_categorical('subsample', [0.5, 0.6, 0.7, 0.8, 0.9, 1.0]),
-            'learning_rate': trial.suggest_float('learning_rate', 1e-8, 1.0, log=True),
-            'n_estimators': trial.suggest_int('n_estimators', 100, 1000),
-            'max_depth': trial.suggest_int('max_depth', 3, 9),
-            'random_state': 42,
-            'min_child_weight': trial.suggest_int('min_child_weight', 1, 10),
-            'enable_categorical': True
-        }
-
-        x_train, x_val, y_train, y_val = train_test_split(x_train_xgb, y_train_xgb, test_size=0.2, random_state=42)
-        model = XGBRegressor(**param)
-        model.fit(x_train, y_train)
-        preds = model.predict(x_val)
-        mae = mean_absolute_error(y_val, preds)
-        return mae
-
-    @staticmethod
-    def find_best_hyperparameters(x_train_xgb: pd.DataFrame, y_train_xgb: pd.Series, n_trials: int = 100) -> dict:
-        """
-        Find the best hyperparameters for XGBoost using Optuna.
-
-        Params:
-        x_train_xgb (pd.DataFrame): Training features for XGBoost.
-        y_train_xgb (pd.Series): Training labels for XGBoost.
-        n_trials (int): Number of trials for Optuna optimization.
-
-        Returns:
-        dict: Best hyperparameters found.
-        """
-        study = optuna.create_study(direction='minimize')
-        study.optimize(lambda trial: DiamondModel.objective(x_train_xgb, y_train_xgb, trial), n_trials=n_trials)
-        return study.best_params
 
     @staticmethod
     def plot_gof(y_true: pd.Series, y_pred: pd.Series) -> None:
@@ -654,7 +671,7 @@ class DiamondModel:
                 if i.endswith('.pkl'):
                     model_name = i.split('_')[1].split('.')[0]
                     self.model_name = model_name
-                    self.model = modelling_algorithms.get(model_name)()
+                    self.model = modelling_algorithms.get(model_name)() if self.model is None else self.model
                     self.model.load(f'{self.folder}/{i}')
                 elif i.endswith('_datas.csv'):
                     self.datas = pd.read_csv(f'{self.folder}/{i}')
@@ -827,10 +844,8 @@ class DiamondModel:
         """
         if self.datas is None:
             raise ValueError("Data is not loaded.")
-        if carat <= 0 or n <= 0:
+        if carat < 0 or n < 0:
             raise ValueError("Carat and n must be greater than 0")
-        if carat > max(self.datas['carat']) * 1.2 or carat < min(self.datas['carat']) * 0.8:
-            raise ValueError("Carat must be within the range of the dataset")
         if n > len(self.datas):
             return self.datas
         if clarity not in self.datas['clarity'].unique() or color not in self.datas['color'].unique() or cut not in self.datas['cut'].unique():

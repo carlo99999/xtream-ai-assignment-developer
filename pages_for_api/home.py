@@ -7,7 +7,7 @@ def home():
     <div style="text-align: center;">
         <h3>Welcome to the Diamond Price Prediction App</h3>
         <p>Use this app to predict the price of a diamond based on its features.</p>
-        <p>Please use the navigation bar to the left to navigate to the different pages of the app.</p>
+        <p>Please use the navigation bar to navigate to the different pages of the app.</p>
     </div>
     """, unsafe_allow_html=True)
     

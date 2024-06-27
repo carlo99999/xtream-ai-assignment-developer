@@ -200,17 +200,9 @@ async def predict(
     model_name = model_file.split('_')[1].split('.')[0]
     try:
         model = DiamondModel(id=id, folder=directory, model=model_name)
-        df = pd.DataFrame([], columns=model.datas_dummies.columns)
-        df_tmp = pd.DataFrame(data, index=[0])
-        df_tmp = pd.get_dummies(df_tmp, columns=["cut", "color", "clarity"])
-        for col in df_tmp.columns:
-            if col in df.columns:
-                df[col] = df_tmp[col]
-        df.fillna(0, inplace=True)
-        if "price" in df.columns:
-            df.drop(columns=["price"], inplace=True)
+        df = pd.DataFrame([data])
 
-        prediction = model.predict(df).tolist()
+        prediction = model.predict(df)
         prediction = [round(p, 2) for p in prediction]
 
         data["model_id"] = id

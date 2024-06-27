@@ -43,7 +43,9 @@ def upload_file(file_upload):
     else:
         st.error("Unsupported file type")
         st.stop()
-
+    for i in data.columns:
+        if i.find("Unnamed")!=-1:
+            data.drop(columns=[i],inplace=True)
     model = DiamondModel(datas=data, model=model_type)
     st.session_state.model = model
     st.session_state.model_trained = True
@@ -69,7 +71,7 @@ if not st.session_state.loaded_model and not st.session_state.model_trained:
 
     file_upload = st.file_uploader("Upload your dataset, remeber that you need the carat, cut, color, clarity, depth, table, price, x, y, z Columns", type=["csv", "xlsx", "json"])
 
-    model_type = st.selectbox("Select the model type", options=["---Select---","LinearRegression", "XGBRegressor"])
+    model_type = st.selectbox("Select the model type", options=["---Select---"]+list(modelling_algorithms.keys()))
 
     model_id = st.selectbox("Or select an existing model ID", options=["---Select---"] + list(models_id.keys()))
 
@@ -148,7 +150,7 @@ if st.session_state.model_trained and not st.session_state.loaded_model and not 
         else:
             st.session_state.model.clean_data(columns_to_drop=st.session_state.columns_to_drop)
             mae=st.session_state.model.train_model()
-        st.session_state.success_string=f"Model trained successfully with MAE: {mae:.2f}"
+        st.session_state.success_string=f"Model trained successfully with MAE: {mae["mae"]:.2f}"
         st.session_state.prediction=True
 
 if st.session_state.loaded_model and not st.session_state.model_trained:
@@ -194,6 +196,7 @@ if st.session_state.prediction and st.session_state.model!=None:
         df.fillna(False,inplace=True)
         df.drop(columns=["price"],inplace=True)
         df.to_csv("tmp.csv",index=False)
+        df=df.astype(float)
         prediction=model.predict(df)
         st.markdown(f"""
         ✨ **The probable market value of the diamond is {prediction[0]:.2f}** ✨

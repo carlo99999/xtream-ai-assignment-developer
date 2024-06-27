@@ -86,6 +86,7 @@ I've also added a simpler pipeline for training a model on user-defined data usi
 Although the visual interface is more user-friendly, it is more challenging to automate.
 
 To demonstrate the flexibility of my classes, I added a Multilayer Perceptron (MLP) model that works seamlessly with the existing framework. This addition showcases how easily new models can be integrated and used within the current structure.
+NB: If you want to use the MLP Model use the default settings please, otherwise it wont work
 
 #### Future Enhancements
 
@@ -95,6 +96,7 @@ To demonstrate the flexibility of my classes, I added a Multilayer Perceptron (M
 4. **Airflow Integration**: Integrating the pipeline with Airflow for better workflow management.
 
 Overall, the current implementation provides a solid foundation. With the proposed enhancements, it can significantly improve the user experience. Balancing simplicity and functionality is crucial to avoid unnecessary complexity.
+
 
 
 

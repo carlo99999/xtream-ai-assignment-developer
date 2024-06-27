@@ -345,10 +345,8 @@ def plot_predictions_vs_actual(self, save: bool = False):
 def get_similar_samples(self, carat: float, cut: str, color: str, clarity: str, n: int) -> pd.DataFrame:
     if self.datas is None:
         raise ValueError("Data is not loaded.")
-    if carat <= 0 or n <= 0:
+    if carat < 0 or n < 0:
         raise ValueError("Carat and n must be greater than 0")
-    if carat > max(self.datas['carat']) * 1.2 or carat < min(self.datas['carat']) * 0.8:
-        raise ValueError("Carat must be within the range of the dataset")
     if n > len(self.datas):
         return self.datas
     if clarity not in self.datas['clarity'].unique() or color not in self.datas['color'].unique() or cut not in self.datas['cut'].unique():
