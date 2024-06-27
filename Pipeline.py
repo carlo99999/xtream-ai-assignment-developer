@@ -1,68 +1,51 @@
+from DiamondModels import DiamondModel, XGBRegressorModel, LinearRegressionModel, MLPModel,file_readers,modelling_algorithms
 import pandas as pd
-from typing import Union
-from DiamondModels import DiamondModel
-from datetime import datetime
-import sys
 
+import os
 
+class ModelsPipeline:
+    def __init__(self, data_path: str, folder: str = "ModelsPipeline"):
+        self.data_path = data_path
+        self.folder = folder
+        os.makedirs(self.folder, exist_ok=True)
+        self.models = modelling_algorithms
 
-class Pipeline:
-    """
-    A pipeline to train a model and make predictions.
-
-    Params:
-    datas: Union[pd.DataFrame, str]: The data to train the model, either a pandas DataFrame or a path to a file.
-    model: str: The model to train the data. Options:
-        - LinearRegression
-        - XGBRegressor
-    """
-    def __init__(self, datas: Union[pd.DataFrame, str], model: str) -> None:
-        self.datas = datas
-        self.model = model
-
-    def train(self) -> pd.Series:
-        """
-        Train the model and make predictions.
-
-        Returns:
-        pd.Series: Predicted prices.
-        """
-        self.model_trained = DiamondModel(datas=self.datas, model=self.model)
-        self.model_trained.clean_data()
-        self.model_trained.train_model()
+    def run_pipeline(self):
+        data = self._load_data(self.data_path)
         
-    def predict(self, data: pd.DataFrame) -> pd.Series:
-        """
-        Predict prices for new data.
+        for model_name, model_class in self.models.items():
+            print(f"Training {model_name} model...")
+            model_folder = os.path.join(self.folder, model_name)
+            os.makedirs(model_folder, exist_ok=True)
+            
+            # Initialize DiamondModel for the current model
+            diamond_model = DiamondModel(data, model=model_name, folder=model_folder)
+            
+            # Clean data
+            diamond_model.clean_data()
+            
+            # Train model and save it
+            mae_mse = diamond_model.train_model(folder_to_save=model_folder)
+            print(f"{model_name} model trained. MAE: {mae_mse['mae']}, MSE: {mae_mse['mse']}")
+            
+            # Save visualizations
+            diamond_model.visualize_scatter_matrix(save=True, show=False,path=f'{model_folder}/Visualize')
+            diamond_model.visualize_histogram(save=True, show=False,path=f'{model_folder}/Visualize')
+            diamond_model.visualize_diamond_prices_by('cut', save=True, show=False,path=f'{model_folder}/Visualize')
+            diamond_model.plot_predictions_vs_actual(save=True, show=False,path=f'{model_folder}/Visualize')
+            print(f"{model_name} model and visualizations saved in {model_folder}")
 
-        Params:
-        data: DataFrame containing the features for prediction.
+    def _load_data(self, data_path: str) -> pd.DataFrame:
+        for extension, reader in file_readers.items():
+            if data_path.endswith(extension):
+                df = reader(data_path)
+                for i in df.columns:
+                    if i.find('Unnamed') != -1:
+                        df.drop(columns=[i], inplace=True)
+                return df
+        raise ValueError(f"Unsupported file extension: {data_path}")
 
-        Returns:
-        pd.Series: Predicted prices.
-        """
-        return self.model_trained.predict(data)
-    
-    def run(self,data: pd.DataFrame) -> pd.Series:
-        """
-        Train the model and make predictions.
-
-        Returns:
-        pd.Series: Predicted prices.
-        """
-        
-        self.train()
-        self.prediction=self.predict(data)
-        data["price"]=self.prediction
-        
-        data.to_csv(f"predicted_prices_{datetime.now()}.csv",index=False)
-        return data["price"]
-    
-
-
-if __name__ == "__main__":
-    model_type=sys.argv[1]
-    data_to_train=sys.argv[2]
-    pipeline=Pipeline(datas=data_to_train,model=model_type)
-    pipeline.train()
-    
+# Example usage
+data_path = "data/diamonds.csv"
+pipeline = ModelsPipeline(data_path)
+pipeline.run_pipeline()

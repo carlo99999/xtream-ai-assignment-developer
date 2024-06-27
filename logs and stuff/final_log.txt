@@ -1,0 +1,35 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.11.9, pytest-7.4.0, pluggy-1.0.0
+rootdir: /Users/carlopiccinin/Desktop/side projects/xtream-ai/xtream-ai-assignment-developer
+plugins: anyio-3.5.0, time-machine-2.14.1
+collected 16 items
+
+tests/test_diamond_model.py ..........                                   [ 62%]
+tests/test_linear_regression.py ...                                      [ 81%]
+tests/test_xgb_regressor_model.py ...                                    [100%]
+
+=============================== warnings summary ===============================
+../../../../anaconda3/lib/python3.11/site-packages/plotly/express/imshow_utils.py:24
+  /Users/carlopiccinin/anaconda3/lib/python3.11/site-packages/plotly/express/imshow_utils.py:24: DeprecationWarning: `np.bool8` is a deprecated alias for `np.bool_`.  (Deprecated NumPy 1.24)
+    np.bool8: (False, True),
+
+tests/test_diamond_model.py::test_train_model[LinearRegression]
+tests/test_diamond_model.py::test_train_model[XGBRegressor]
+tests/test_diamond_model.py::test_predict[LinearRegression]
+tests/test_diamond_model.py::test_predict[XGBRegressor]
+tests/test_diamond_model.py::test_save_load_diamond_model[LinearRegression]
+tests/test_diamond_model.py::test_save_load_diamond_model[XGBRegressor]
+  /Users/carlopiccinin/Desktop/side projects/xtream-ai/xtream-ai-assignment-developer/DiamondModels.py:792: UserWarning: The data is not yet cleaned, cleaning it now using the default columns to drop
+    warnings.warn("The data is not yet cleaned, cleaning it now using the default columns to drop")
+
+tests/test_diamond_model.py::test_get_similar_samples[LinearRegression]
+tests/test_diamond_model.py::test_get_similar_samples[XGBRegressor]
+  /Users/carlopiccinin/Desktop/side projects/xtream-ai/xtream-ai-assignment-developer/DiamondModels.py:856: SettingWithCopyWarning: 
+  A value is trying to be set on a copy of a slice from a DataFrame.
+  Try using .loc[row_indexer,col_indexer] = value instead
+  
+  See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+    filtered_data['weight_diff'] = (filtered_data['carat'] - carat).abs()
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+================== 16 passed, 9 warnings in 83.20s (0:01:23) ===================

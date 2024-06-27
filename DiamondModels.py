@@ -582,7 +582,7 @@ class DiamondModel:
             raise ValueError("The data could not be loaded")
 
     @staticmethod
-    def plot_gof(y_true: pd.Series, y_pred: pd.Series) -> None:
+    def plot_gof(y_true: pd.Series, y_pred: pd.Series,show: bool,path:str='visualization',save: bool=False) -> None:
         """
         Plot the goodness of fit.
 
@@ -590,11 +590,17 @@ class DiamondModel:
         y_true (pd.Series): Actual values.
         y_pred (pd.Series): Predicted values.
         """
-        plt.plot(y_true, y_pred, '.')
-        plt.plot(y_true, y_true, linewidth=3, c='black')
-        plt.xlabel('Actual')
-        plt.ylabel('Predicted')
-        plt.show()
+        fig=px.scatter(x=y_true, y=y_pred, labels={'x': 'Actual', 'y': 'Predicted'})
+        fig.add_shape(type='line', x0=y_true.min(), y0=y_true.min(), x1=y_true.max(), y1=y_true.max(), line=dict(color='red', width=2))
+        fig.update_layout(title='Goodness of Fit', xaxis_title='Actual', yaxis_title='Predicted')
+        if save:
+            if not os.path.exists(path):
+                os.makedirs(path)
+
+            fig.write_image(f'{path}/goodness_of_fit.png')
+        if show:
+            plt.show()
+        return fig
 
     @staticmethod
     def prepare_data_for_prediction(data_blueprint: pd.DataFrame, data_to_predict: pd.DataFrame, target_column: str = "price") -> pd.DataFrame:
@@ -726,7 +732,7 @@ class DiamondModel:
         columns = [col for col in columns_to_dummies if col not in columns_to_drop or col.find('Unnamed') == -1]
         self.datas_dummies = pd.get_dummies(self.datas_processed, columns=columns, drop_first=True,dtype=float)
 
-    def visualize_scatter_matrix(self, save: bool = False) -> plt.Figure:
+    def visualize_scatter_matrix(self, save: bool = False,show: bool=True,path:str='visualizations') -> plt.Figure:
         """
         Visualize a scatter matrix of the numerical features.
 
@@ -738,12 +744,14 @@ class DiamondModel:
         """
         fig = pd.plotting.scatter_matrix(self.datas.select_dtypes(include=['number']), figsize=(14, 10))
         if save:
-            os.makedirs('visualizations', exist_ok=True)
-            plt.savefig(f'visualizations/{self.id}_scatter_matrix.png')
-        plt.show()
+            os.makedirs(f'{path}', exist_ok=True)
+            plt.savefig(f'{path}/{self.id}_scatter_matrix.png')
+        if show:
+            plt.show()
+       
         return fig
 
-    def visualize_histogram(self, save: bool = False) -> plt.Figure:
+    def visualize_histogram(self, save: bool = False,show: bool=True,path:str='visualizations') -> plt.Figure:
         """
         Visualize histograms of the features.
 
@@ -755,12 +763,13 @@ class DiamondModel:
         """
         fig = self.datas.hist(bins=100, figsize=(14, 10))
         if save:
-            os.makedirs('visualizations', exist_ok=True)
-            plt.savefig(f'visualizations/{self.id}_histogram.png')
-        plt.show()
+            os.makedirs(f'{path}', exist_ok=True)
+            plt.savefig(f'{path}/{self.id}_histogram.png')
+        if show:
+            plt.show()
         return fig
 
-    def visualize_diamond_prices_by(self, cut_column: str, save: bool = False) -> px.violin:
+    def visualize_diamond_prices_by(self, cut_column: str, save: bool = False,show: bool=True,path:str='visualizations') -> px.violin:
         """
         Visualize diamond prices by a categorical feature using a violin plot.
 
@@ -772,10 +781,11 @@ class DiamondModel:
         px.violin: Violin plot figure.
         """
         fig = px.violin(self.datas, x=cut_column, y='price', color=cut_column, title=f'Price by {cut_column}')
-        fig.show()
+        if show:
+            fig.show()
         if save:
-            os.makedirs('visualizations', exist_ok=True)
-            fig.write_html(f'visualizations/{self.id}_price_by_{cut_column}.html')
+            os.makedirs(f'{path}', exist_ok=True)
+            fig.write_html(f'{path}/{self.id}_price_by_{cut_column}.html')
         return fig
 
     def train_model(self, folder_to_save: str = None) -> Dict[str, float]:
@@ -800,19 +810,18 @@ class DiamondModel:
         mae_mse = self.model.evaluate(X_test, y_test)
         self.params = self.model.get_params()
         self._save(folder_to_save)
+        self.GT_Y = y_test
         return mae_mse
 
-    def plot_predictions_vs_actual(self, save: bool = False) -> None:
+    def plot_predictions_vs_actual(self, save: bool = False,show: bool=False,path='visualization') -> None:
         """
         Plot the predicted values against the actual values.
 
         Params:
         save (bool): Whether to save the plot to a file.
         """
-        DiamondModel.plot_gof(self.GT_Y, self.predictions)
-        if save:
-            os.makedirs('visualizations', exist_ok=True)
-            plt.savefig(f'visualizations/{self.id}_predictions_vs_actual.png')
+        DiamondModel.plot_gof(self.GT_Y, self.predictions,show=show,path=path,save=save)
+        
 
     def predict(self, data: pd.DataFrame) -> pd.Series:
         """
