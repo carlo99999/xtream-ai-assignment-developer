@@ -140,9 +140,8 @@ The web app requires two open terminals to run:
 
 To run the simpler pipeline, execute the following command:
 ```bash
-python Pipeline.py <NameOfTheModel> <path/to/your/datafile>
+python Pipeline.py
 ```
-Replace `<NameOfTheModel>` with the desired model name and `<path/to/your/datafile>` with the path to the dataset you want to use for training.
 
 ### Additional Notes
 
