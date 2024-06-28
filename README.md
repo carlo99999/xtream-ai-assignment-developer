@@ -106,14 +106,115 @@ Overall, the current implementation provides a solid foundation. With the propos
 
 ### Prerequisites
 
-Make sure you have an anaconda environment set up as I have used it to run the scripts. You can find both `conda_packages.txt` and `requirements.txt` files included.
+Make sure you have a python or an anaconda environment set up as I have used it to run the scripts. You can find both `conda_packages.txt`, `requirements.txt` and `environment.yml` files included.
+
+For a python environment you need `requirements.txt`, for the conda you can use both but is suggested you use `conda_packages.txt`
 
 ### Setting Up
 
-1. **Install the required packages**:
+### Creating a Virtual Environment in Python and Conda
+
+This guide will help you create and manage virtual environments using both Python's `pip` and Conda, including the use of `requirements.txt` and `environment.yml` files.
+
+### For a Python Environment (using `pip`)
+
+1. **Create a Virtual Environment**:
+   ```bash
+   python -m venv myenv
+   ```
+
+2. **Activate the Virtual Environment**:
+   - On Windows:
+     ```bash
+     myenv\Scripts\activate
+     ```
+   - On macOS/Linux:
+     ```bash
+     source myenv/bin/activate
+     ```
+
+3. **Install the Required Packages**:
+   Create a `requirements.txt` file with your required packages:
+   ```
+   numpy==1.20.3
+   pandas==1.3.3
+   scipy==1.7.1
+   scikit-learn==0.24.2
+   ```
+
+   Then, install the packages:
    ```bash
    pip install -r requirements.txt
    ```
+
+### For a Conda Environment
+
+1. **Create a Conda Environment**:
+   ```bash
+   conda create --name myenv
+   ```
+
+2. **Activate the Conda Environment**:
+   ```bash
+   conda activate myenv
+   ```
+
+3. **Install the Required Packages Using `conda_packages.txt`**:
+   Create a `conda_packages.txt` file with your required packages:
+   ```
+   numpy=1.20.3
+   pandas=1.3.3
+   scipy=1.7.1
+   scikit-learn=0.24.2
+   ```
+
+   Then, install the packages:
+   ```bash
+   conda install --file conda_packages.txt
+   ```
+
+### Using `environment.yml` for Conda
+
+A more structured approach for managing Conda environments is to use an `environment.yml` file.
+
+1. **Create an `environment.yml` File**:
+   ```yaml
+   name: myenv
+   channels:
+     - defaults
+   dependencies:
+     - numpy=1.20.3
+     - pandas=1.3.3
+     - scipy=1.7.1
+     - scikit-learn=0.24.2
+     - pip:
+       - some-package==1.2.3
+   ```
+
+2. **Create a Conda Environment from the `environment.yml` File**:
+   ```bash
+   conda env create -f environment.yml
+   ```
+
+3. **Activate the Conda Environment**:
+   ```bash
+   conda activate myenv
+   ```
+
+### Summary
+
+- **For Python (pip)**:
+  - Create and activate a virtual environment.
+  - Use `requirements.txt` to manage dependencies.
+  - Install dependencies with `pip install -r requirements.txt`.
+
+- **For Conda**:
+  - Create and activate a Conda environment.
+  - Use `conda_packages.txt` or `environment.yml` to manage dependencies.
+  - Install dependencies with `conda install --file conda_packages.txt` or create the environment with `conda env create -f environment.yml`.
+
+
+
 
 ### Running the Visual Interface for Challenge 1 and 2
 
