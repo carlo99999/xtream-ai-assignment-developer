@@ -114,7 +114,7 @@ For a python environment you need `requirements.txt`, for the conda you can use 
 
 ### Creating a Virtual Environment in Python and Conda
 
-This guide will help you create and manage virtual environments using both Python's `pip` and Conda, including the use of `requirements.txt` and `environment.yml` files.
+This guide will help you create and manage virtual environments using both Python's `pip` and Conda, including the use of `requirements.txt`, `conda_packages.txt` and `environment.yml` files.
 
 ### For a Python Environment (using `pip`)
 
