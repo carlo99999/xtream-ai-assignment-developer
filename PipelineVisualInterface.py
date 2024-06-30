@@ -136,7 +136,7 @@ if st.session_state.model_trained and not st.session_state.loaded_model and not 
             st.session_state.columns_to_drop.append(column_to_drop)
         
     if st.session_state.columns_to_drop!=[] and st.session_state.columns_to_drop!=["Default setting"]:
-        st.write(f"Columns to drop: {"   ".join(st.session_state.columns_to_drop)}")
+        st.write(f"Columns to drop: {'   '.join(st.session_state.columns_to_drop)}")
         
     if st.button("Train the model",key="train_model"):
         if column_to_drop=="Use default setting":
@@ -150,7 +150,7 @@ if st.session_state.model_trained and not st.session_state.loaded_model and not 
         else:
             st.session_state.model.clean_data(columns_to_drop=st.session_state.columns_to_drop)
             mae=st.session_state.model.train_model()
-        st.session_state.success_string=f"Model trained successfully with MAE: {mae["mae"]:.2f}"
+        st.session_state.success_string=f"Model trained successfully with MAE: {mae['mae']:.2f}"
         st.session_state.prediction=True
 
 if st.session_state.loaded_model and not st.session_state.model_trained:
