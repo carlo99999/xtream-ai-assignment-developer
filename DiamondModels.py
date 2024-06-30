@@ -19,6 +19,12 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from sklearn.preprocessing import StandardScaler
+import logging
+from typing import Any, Optional,List
+from config import DATA_FOLDER, MODELS_FOLDER, VISUALIZATIONS_FOLDER,COLUMNS_TO_DROP,COLUMNS_TO_DUMMIES
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 logging.basicConfig(level=logging.INFO)
@@ -28,7 +34,9 @@ class BaseModel(ABC):
     Abstract base class for models.
     """
     def __init__(self) -> None:
-        pass
+        self.model_trained: Any = None
+        self.mae_mse: Optional[Dict[str, float]] = None
+        self.params: Optional[Dict[str, Any]] = None
 
     @abstractmethod
     def train(self, X_train: pd.DataFrame, y_train: pd.Series) -> None:
@@ -97,6 +105,12 @@ class BaseModel(ABC):
         Dict[str, float]: Model parameters.
         """
         pass
+    
+    def _calculate_metrics(self, y_true: pd.Series, y_pred: pd.Series) -> Dict[str, float]:
+        """Calculate MAE and MSE metrics."""
+        mae = mean_absolute_error(y_true, y_pred)
+        mse = mean_squared_error(y_true, y_pred)
+        return {"mae": mae, "mse": mse}
 
 class LinearRegressionModel(BaseModel):
     """
@@ -136,7 +150,10 @@ class LinearRegressionModel(BaseModel):
         Returns:
         pd.Series: Predictions.
         """
-        return self.model_trained.predict(X)
+        
+        if self.model_trained is None:
+            raise ValueError("Model has not been trained yet.")
+        return pd.Series(np.exp(self.model_trained.predict(X)))
     
     def save(self, path: str) -> None:
         """
@@ -517,7 +534,7 @@ class DiamondModel:
     """
     Class for managing diamond price prediction models.
     """
-    def __init__(self, datas: Union[pd.DataFrame, str] = None, id: str = None, model: str = None, folder: str = "models") -> None:
+    def __init__(self, datas: Union[pd.DataFrame, str] = None, id: str = None, model: str = None, folder: str = MODELS_FOLDER) -> None:
         """
         Initialize the DiamondModel.
 
@@ -582,7 +599,7 @@ class DiamondModel:
             raise ValueError("The data could not be loaded")
 
     @staticmethod
-    def plot_gof(y_true: pd.Series, y_pred: pd.Series,show: bool,path:str='visualization',save: bool=False) -> None:
+    def plot_gof(y_true: pd.Series, y_pred: pd.Series,show: bool,path:str=VISUALIZATIONS_FOLDER,save: bool=False) -> None:
         """
         Plot the goodness of fit.
 
@@ -626,8 +643,6 @@ class DiamondModel:
         data_columns = set(data_to_predict.columns)
         missing_columns = blueprint_columns - data_columns
         if missing_columns:
-            print(data_columns)
-            print("#"*100)
             raise ValueError(f"Missing columns in the data you want to predict: {missing_columns}")
 
         columns_to_dummies = data_to_predict.select_dtypes(include=['object']).columns
@@ -651,14 +666,16 @@ class DiamondModel:
         Returns:
         pd.DataFrame: Loaded data.
         """
-        for extension, reader in file_readers.items():
-            if file_path.endswith(extension):
-                df=reader(file_path)
-                for i in df.columns:
-                    if i.find('Unnamed') != -1:
-                        df.drop(columns=[i], inplace=True)
-                return df
-        raise ValueError(f"Unsupported file extension: {file_path}")
+        try:
+            for extension, reader in file_readers.items():
+                if file_path.endswith(extension):
+                    df = reader(file_path)
+                    df = df.loc[:, ~df.columns.str.contains('^Unnamed')]
+                    return df
+            raise ValueError(f"Unsupported file extension: {file_path}")
+        except Exception as e:
+            logger.error(f"Error loading file {file_path}: {str(e)}")
+            raise
 
     def _load(self, id: str) -> None:
         """
@@ -717,7 +734,7 @@ class DiamondModel:
         with open(f'{folder_to_save}/{self.id}_params.json', 'w') as f:
             json.dump(self.params, f)
 
-    def clean_data(self, columns_to_drop: List[str] = ['depth', 'table', 'y', 'z'], columns_to_dummies: List[str] = ['cut', 'color', 'clarity']) -> None:
+    def clean_data(self, columns_to_drop: List[str] = COLUMNS_TO_DROP, columns_to_dummies: List[str] = COLUMNS_TO_DUMMIES) -> None:
         """
         Clean the data by dropping specified columns and creating dummy variables for categorical features.
 
@@ -813,7 +830,7 @@ class DiamondModel:
         self.GT_Y = y_test
         return mae_mse
 
-    def plot_predictions_vs_actual(self, save: bool = False,show: bool=False,path='visualization') -> None:
+    def plot_predictions_vs_actual(self, save: bool = False,show: bool=False,path=VISUALIZATIONS_FOLDER) -> None:
         """
         Plot the predicted values against the actual values.
 

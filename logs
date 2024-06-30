@@ -1,0 +1,7 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.11.9, pytest-7.4.0, pluggy-1.0.0
+rootdir: /Users/carlopiccinin/Desktop/side projects/xtream-ai/xtream-ai-assignment-developer
+plugins: anyio-3.5.0, time-machine-2.14.1
+collected 0 items
+
+============================ no tests ran in 0.00s =============================
